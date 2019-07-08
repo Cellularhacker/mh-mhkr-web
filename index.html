@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PZGS Mahjong Graph</title>
+    <!-- JS Import -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"
+    />
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
+    ></script>
+    <script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- Naver Billboard Chart library -->
+    <!-- Step 1) Load D3.js -->
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <!-- Step 2) Load billboard.js with style -->
+    <script src="js/billboard.js"></script>
+
+    <!-- Load with base style -->
+    <link rel="stylesheet" href="css/billboard.css" />
+
+    <!-- END OF JS Import -->
+    <style>
+      body {
+        padding: 30px 30px 30px 30px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2><span>현재시각: </span><span id="now"></span></h2>
+    <hr />
+    <div>
+      <select name="userName" id="userName">
+        <option value="">유저 명을 선택해 주세요</option>
+      </select>
+      <button type="submit" id="submitButton">차트 조회</button>
+    </div>
+    <div id="charts"></div>
+
+    <script type="text/javascript">
+      $(document).ready(function() {
+        // function() getUser Lists
+        $(function() {
+          $.ajax({
+            type: "GET",
+            url: "https://api.mh.yohane.dev/users",
+            success: function(users) {
+              var tmpStr = "";
+              users.data.sort((a, b) => {
+                var keyA = a.userName;
+                var keyB = b.userName;
+
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+              });
+              users.data.splice(0, 1);
+              users.data.forEach(e => {
+                tmpStr += `<option value="${e.userName}">${e.userName}</option>\n`;
+              });
+              $("#userName").html(tmpStr);
+            }
+          });
+        });
+
+        // function() getChart of user
+        $("#submitButton").on("click", function() {
+          var sel = document.getElementById("userName");
+          var userName = sel.options[sel.selectedIndex].value;
+
+          $.ajax({
+            type: "GET",
+            url: "https://api.mh.yohane.dev/records/user?userName=" + userName,
+            success: function(userRecords) {
+              var tmpStr = "";
+              console.log(userRecords.data);
+              var { total, balances, dates, balDates } = getDateBalance(
+                userRecords.data,
+                userName
+              );
+              console.log(balDates);
+
+              var INTERVAL_LENGTH = 10;
+              var max = Math.ceil(dates.length / 10);
+              console.log(`max => `, max);
+              var chartsSub = "";
+              for (var i = 0; i < max; i++) {
+                chartsSub += `<div id="chart${i}"></div>`;
+              }
+
+              $(`#charts`).html(chartsSub);
+
+              for (var i = 1; i < 20; i++) {
+                $(`#chart${i}`).html("");
+              }
+
+              for (i = 0; i < dates.length; i += INTERVAL_LENGTH) {
+                console.log(i, dates.length, i + INTERVAL_LENGTH);
+                var tmpDateArr = dates;
+                var tmpBalanceArr = balances;
+                var currDates = tmpDateArr.slice(i, i + INTERVAL_LENGTH);
+                var currBalances = tmpBalanceArr.slice(i, i + INTERVAL_LENGTH);
+                var chart = bb.generate({
+                  bindto: `#chart${i / INTERVAL_LENGTH}`,
+                  data: {
+                    x: "x",
+                    columns: [
+                      ["x"].concat(currDates),
+                      ["점수"].concat(currBalances)
+                    ],
+                    types: {
+                      점수: "line"
+                    },
+                    colors: {
+                      점수: "red"
+                    }
+                  },
+                  axis: {
+                    x: {
+                      type: "timeseries",
+                      tick: {
+                        fit: true,
+                        format: "%Y-%m-%d_%H:%M%S",
+                        count: INTERVAL_LENGTH
+                      }
+                    }
+                    // y: {
+                    //   tick: {
+                    //     fit: true,
+                    //     count: INTERVAL_LENGTH
+                    //   }
+                    // }
+                  }
+                });
+              }
+            }
+          });
+        });
+
+        // Time Indicating
+        $(function() {
+          $("#now").text(new Date());
+          setInterval(function() {
+            $("#now").text(new Date());
+          }, 1000);
+        });
+      });
+
+      // Additional Functions
+      function getDateBalance(userRecords, userName) {
+        userRecords.sort((a, b) => {
+          var keyA = new Date(a.date).getTime();
+          var keyB = new Date(b.date).getTime();
+          // Compare the 2 dates
+          if (keyA < keyB) return -1;
+          if (keyA > keyB) return 1;
+          return 0;
+        });
+
+        var tmp = [];
+        var balances = [];
+        var dates = [];
+        var balDates = [];
+        userRecords.forEach(e => {
+          var balance = e.scores.filter(k => k.userName === userName);
+          tmp.push({
+            pk: e.pk,
+            date: e.date,
+            gameLength: e.gameLength,
+            balance: balance[0].balance
+          });
+          balances.push(balance[0].balance);
+          // dates.push(getDate(new Date(e.date).getTime()));
+          // dates.push(e.date);
+          dates.push(new Date(e.date));
+          balDates.push({
+            value: balance[0].balance,
+            // text: getDate(new Date(e.date).getTime())
+            // text: e.date
+            text: new Date(e.date)
+          });
+        });
+
+        return {
+          total: tmp,
+          balances: balances,
+          dates: dates,
+          balDates: balDates
+        };
+      }
+      //getDates()
+      function getDate(msDate) {
+        var currDate = new Date(msDate);
+        var dateStr = "";
+        dateStr += currDate.getFullYear() + "-";
+        dateStr +=
+          currDate.getMonth() < 10
+            ? "0" + currDate.getMonth() + "-"
+            : currDate.getMonth() + "-";
+        dateStr +=
+          currDate.getDay() < 10 ? "0" + currDate.getDay() : currDate.getDay();
+        dateStr += "_";
+        dateStr +=
+          currDate.getHours() < 10
+            ? "0" + currDate.getHours() + ":"
+            : currDate.getHours() + ":";
+        dateStr +=
+          currDate.getMinutes() < 10
+            ? "0" + currDate.getMinutes() + ":"
+            : currDate.getMinutes() + ":";
+        dateStr +=
+          currDate.getSeconds() < 10
+            ? "0" + currDate.getSeconds()
+            : currDate.getSeconds();
+        // dateStr +=
+        //   currDate.getMilliseconds() < 10
+        //     ? "00" + currDate.getMilliseconds()
+        //     : currDate.getMilliseconds() < 100
+        //     ? "0" + currDate.getMilliseconds()
+        //     : currDate.getMilliseconds();
+
+        return dateStr;
+      }
+    </script>
+  </body>
+</html>
