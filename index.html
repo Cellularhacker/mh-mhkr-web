@@ -238,7 +238,8 @@
                       tick: {
                         fit: true,
                         format: "%d일 %H:%M",
-                        count: yearMonthArr[i].lastDay
+                        count: yearMonthArr[i].lastDay,
+                        // values: getTickValues(yearMonthArr[i].year, yearMonthArr[i].month, yearMonthArr[i].lastDay)
                       }
                     }
                   }
@@ -437,6 +438,13 @@
               return { splitedArrs, yearMonthArr };
             }
           }
+        }
+      }
+      function getTickValues(year, month, length) {
+        let tmp = [];
+        for (let i = 1; i <= length; i++) {
+          tmp.push(`${year}-${month}-${i}`);
+          if (i === length) return tmp;
         }
       }
     </script>
