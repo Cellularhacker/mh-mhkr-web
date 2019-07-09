@@ -85,7 +85,9 @@
 
           $.ajax({
             type: "GET",
-            url: "https://api.mh.yohane.dev/records/user?userName=" + encodeURIComponent(userName),
+            url:
+              "https://api.mh.yohane.dev/records/user?userName=" +
+              encodeURIComponent(userName),
             success: function(userRecords) {
               var tmpStr = "";
               console.log(userRecords.data);
@@ -270,7 +272,9 @@
 
           $.ajax({
             type: "GET",
-            url: "https://api.mh.yohane.dev/records/user?userName=" + encodeURIComponent(userName),
+            url:
+              "https://api.mh.yohane.dev/records/user?userName=" +
+              encodeURIComponent(userName),
             success: function(userRecords) {
               const tmpStr = "";
               console.log(userRecords.data);
@@ -556,7 +560,10 @@
             yearMonthObjectToDate(yearMonthArr[i])
           );
           tmpArr.push(yearMonthObjectToDate(yearMonthArr[i]));
-          console.log(`>>>>>>>> ${i+1}/${yearMonthArr.length}, tmpArr ->`, tmpArr);
+          console.log(
+            `>>>>>>>> ${i + 1}/${yearMonthArr.length}, tmpArr ->`,
+            tmpArr
+          );
           if (i >= yearMonthArr.length - 1) {
             return tmpArr;
           }
@@ -570,4 +577,18 @@
       }
     </script>
   </body>
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>
+        <strong>Bulma</strong> by
+        <a href="https://jgthms.com">Jeremy Thomas</a>. The source code is
+        licensed
+        <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The
+        website content is licensed
+        <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/"
+          >CC BY NC SA 4.0</a
+        >.
+      </p>
+    </div>
+  </footer>
 </html>
