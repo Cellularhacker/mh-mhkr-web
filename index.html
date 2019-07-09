@@ -36,22 +36,26 @@
       body {
         padding: 30px 30px 30px 30px;
       }
+      #formContainer {
+        margin-bottom: 30px;
+      }
     </style>
   </head>
   <body>
-    <h1 class="title">PZGS 마작 대국기록 차트</h1>
-    <h2 class="subtitle"><span>현재시각: </span><span id="now"></span></h2>
-    <hr />
-    <div>
-      <select name="userName" id="userName">
-        <option value="">유저 명을 선택해 주세요</option>
-      </select>
-      <button type="submit" id="submitButton">차트 조회</button>
-      <button type="submit" id="scatterButton">분산 차트</button>
-      <button type="submit" id="monthlyAverageButton">월 평균 차트</button>
+    <div class="has-text-left">
+      <h1 class="title">PZGS 마작 대국기록 차트</h1>
+      <h2 class="subtitle"><span>현재시각: </span><span id="now"></span></h2>
+      <hr />
+      <div id="formContainer">
+        <select name="userName" id="userName">
+          <option value="">유저 명을 선택해 주세요</option>
+        </select>
+        <button type="submit" id="submitButton">차트 조회</button>
+        <button type="submit" id="scatterButton">분산 차트</button>
+        <button type="submit" id="monthlyAverageButton">월 평균 차트</button>
+      </div>
+      <div id="charts"></div>
     </div>
-    <div id="charts"></div>
-
     <script type="text/javascript">
       $(document).ready(function() {
         // function() getUser Lists
@@ -326,8 +330,8 @@
                     type: "timeseries",
                     tick: {
                       fit: true,
-                      format: "%Y-%m",
-                      count: splitedArrs.length
+                      format: "%Y\n%m",
+                      count: splitedArrs.length +2
                     }
                   }
                 }
@@ -548,7 +552,7 @@
           // If it is a last one.
           if (i >= balances.length - 1) {
             // console.log(`total: `, tmpMonthAvg.div(balances.length).toNumber());
-            return tmpMonthAvg.div(balances.length).toNumber();
+            return tmpMonthAvg.div(balances.length).toFixed(3);
           }
         }
       }
@@ -574,20 +578,17 @@
         const year = yearMonthObject.year;
         const month = yearMonthObject.month;
         return new Date(year, month, 0);
+        // return `\'${year[2]}${year[3]}\n${month < 10 ? "0" + month : month}`;
       }
     </script>
   </body>
   <footer class="footer">
     <div class="content has-text-centered">
       <p>
-        <strong>Bulma</strong> by
-        <a href="https://jgthms.com">Jeremy Thomas</a>. The source code is
-        licensed
-        <a href="http://opensource.org/licenses/mit-license.php">MIT</a>. The
-        website content is licensed
-        <a href="http://creativecommons.org/licenses/by-nc-sa/4.0/"
-          >CC BY NC SA 4.0</a
-        >.
+        <strong>PZGS Mahjong Graph</strong> by
+        <a href="https://github.com/Cellularhacker">Cellularhacker</a>. The
+        source code is licensed
+        <a href="http://en.wikipedia.org/wiki/Beerware">THE BEER-WARE</a>
       </p>
     </div>
   </footer>
