@@ -85,7 +85,7 @@
 
           $.ajax({
             type: "GET",
-            url: "https://api.mh.yohane.dev/records/user?userName=" + userName,
+            url: "https://api.mh.yohane.dev/records/user?userName=" + encodeURIComponent(userName),
             success: function(userRecords) {
               var tmpStr = "";
               console.log(userRecords.data);
@@ -270,7 +270,7 @@
 
           $.ajax({
             type: "GET",
-            url: "https://api.mh.yohane.dev/records/user?userName=" + userName,
+            url: "https://api.mh.yohane.dev/records/user?userName=" + encodeURIComponent(userName),
             success: function(userRecords) {
               const tmpStr = "";
               console.log(userRecords.data);
