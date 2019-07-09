@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8" lang="ko" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>PZGS Mahjong Graph</title>
     <!-- JS Import -->
@@ -44,6 +44,7 @@
         <option value="">유저 명을 선택해 주세요</option>
       </select>
       <button type="submit" id="submitButton">차트 조회</button>
+      <button type="submit" id="scatterButton">분산 차트</button>
     </div>
     <div id="charts"></div>
 
@@ -146,12 +147,123 @@
             }
           });
         });
+        //scatter Chart
+        $("#scatterButton").on("click", function() {
+          var sel = document.getElementById("userName");
+          var userName = sel.options[sel.selectedIndex].value;
+          const url =
+            "https://api.mh.yohane.dev/records/user?userName=" +
+            encodeURIComponent(userName);
+
+          $.ajax({
+            type: "GET",
+            url: url,
+            success: function(userRecords) {
+              let tmpStr = "";
+              console.log(
+                `Success to get Data ${userName}=> `,
+                userRecords.data
+              );
+              console.log(url);
+
+              userRecords.data.sort((a, b) => {
+                const keyA = new Date(a.date).getTime();
+                const keyB = new Date(b.date).getTime();
+                // Compare the 2 dates
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+              });
+
+              const { splitedArrs, yearMonthArr } = splitByMonth(
+                userRecords.data
+              );
+              const INTERVAL_LENGTH = splitedArrs.length;
+              console.log(yearMonthArr);
+              console.log(splitedArrs);
+              console.log(INTERVAL_LENGTH);
+
+              //preparing div
+              let chartsSub = "";
+              for (let i = 0; i < INTERVAL_LENGTH; i++) {
+                chartsSub += `<div id="chart${i}"></div>`;
+              }
+              $(`#charts`).html(chartsSub);
+
+              //Beginning of render
+              for (let i = 0; i < INTERVAL_LENGTH; i++) {
+                const currMonthArr = splitedArrs[i];
+                const { total, balances, dates, balDates } = getDateBalance(
+                  currMonthArr,
+                  userName
+                );
+
+                // console.log(balDates);
+                // console.log(
+                //   `Generating Follows... #chart${i} / length: ${
+                //     balances.length
+                //   }/${
+                //     dates.length
+                //   }\n\n${balances.toString()}\n${dates.toString()}`
+                // );
+
+                for (let j = 1; j < currMonthArr.length; j++) {
+                  $(`#chart${j}`).html("");
+                }
+
+                //Rendering a chart...
+                let chart = bb.generate({
+                  bindto: `#chart${i}`,
+                  title: {
+                    text: `<${userName}> ${yearMonthArr[i]} 점수 분포\n총 ${balances.length}번의 대국`
+                  },
+                  data: {
+                    xs: {
+                      점수: "점수_x"
+                    },
+                    columns: [
+                      ["점수"].concat(balances),
+                      ["점수_x"].concat(dates)
+                    ],
+                    types: {
+                      점수: "scatter"
+                    },
+                    colors: {
+                      점수: "green"
+                    }
+                  },
+                  axis: {
+                    x: {
+                      type: "timeseries",
+                      tick: {
+                        fit: true,
+                        format: "%d일 %H:%M",
+                        count: balances.length
+                      }
+                    }
+                  }
+                });
+                if (i === INTERVAL_LENGTH - 1) {
+                  console.log(`Months => ${yearMonthArr.toString()}`);
+                  console.log(
+                    `last(${userRecords.data.length - 1})->`,
+                    userRecords.data[userRecords.data.length - 1]
+                  );
+                  console.log(
+                    `last Date->`,
+                    new Date(userRecords.data[userRecords.data.length - 1].date)
+                  );
+                }
+              }
+            }
+          });
+        });
 
         // Time Indicating
         $(function() {
-          $("#now").text(new Date());
+          $("#now").text(new Date().toLocaleString());
           setInterval(function() {
-            $("#now").text(new Date());
+            $("#now").text(new Date().toLocaleString());
           }, 1000);
         });
       });
@@ -159,8 +271,8 @@
       // Additional Functions
       function getDateBalance(userRecords, userName) {
         userRecords.sort((a, b) => {
-          var keyA = new Date(a.date).getTime();
-          var keyB = new Date(b.date).getTime();
+          var keyA = a.date;
+          var keyB = b.date;
           // Compare the 2 dates
           if (keyA < keyB) return -1;
           if (keyA > keyB) return 1;
@@ -230,6 +342,96 @@
         //     : currDate.getMilliseconds();
 
         return dateStr;
+      }
+      //splitByMonth()
+      function splitByMonth(userRecords) {
+        userRecords.sort((a, b) => {
+          const keyA = new Date(a.date).getTime();
+          const keyB = new Date(b.date).getTime();
+          // Compare the 2 dates
+          if (keyA < keyB) return -1;
+          if (keyA > keyB) return 1;
+          return 0;
+        });
+
+        let remain = userRecords.length;
+        let splitedArrs = [];
+        let yearMonthArr = [];
+
+        let tmpArr = [];
+
+        let i = 0;
+        //only First
+        console.log(userRecords);
+        let currDate = new Date(userRecords[0].date);
+        let befDate = new Date(userRecords[0].date);
+
+        while (remain >= 0) {
+          const curr = userRecords[i];
+          currDate = new Date(curr.date);
+
+          console.log(
+            `remain: ${remain}, curr: ${
+              splitedArrs.length
+            }, i: ${i}\nbef: ${befDate.getFullYear() +
+              "-" +
+              befDate.getMonth().toString()} vs curr: ${currDate.getFullYear() +
+              "-" +
+              currDate.getMonth().toString()}\n `
+          );
+
+          //DEBUGGING//
+          console.log(
+            `[before]\nISODate:  ${befDate.toISOString()}\nbefDate: ${befDate.toLocaleDateString()}\ne.date:   ${befDate}`
+          );
+          console.log(
+            `[current]\nISODate:  ${currDate.toISOString()}\ncurrDate: ${currDate.toLocaleDateString()}\ne.date:   ${currDate}`
+          );
+          /////////////
+
+          //comparing
+          if (
+            befDate.toLocaleDateString().split(". ")[1] ===
+            currDate.toLocaleDateString().split(". ")[1]
+          ) {
+            console.log(`SAME!`);
+            tmpArr.push(curr);
+            if (remain === 1) {
+              yearMonthArr.push(
+                `${befDate.getFullYear().toString()}년 ${
+                  befDate.toLocaleDateString().split(". ")[1]
+                }월`
+              );
+            }
+
+            befDate = currDate;
+            remain--;
+            i++;
+            if (remain === 0) {
+              splitedArrs.push(tmpArr);
+              console.log(`FINISHED SPLITTING!!!!`);
+              return { splitedArrs, yearMonthArr };
+            }
+          } else {
+            console.log(`POOPOOPOODESUWA!`);
+            splitedArrs.push(tmpArr);
+            yearMonthArr.push(
+              `${befDate.getFullYear()}년 ${
+                befDate.toLocaleDateString().split(". ")[1]
+              }월`
+            );
+            tmpArr = [];
+            tmpArr.push(curr);
+
+            befDate = currDate;
+            remain--;
+            i++;
+            if (remain === 0) {
+              console.log(`FINISHED SPLITTING!!!!`);
+              return { splitedArrs, yearMonthArr };
+            }
+          }
+        }
       }
     </script>
   </body>
