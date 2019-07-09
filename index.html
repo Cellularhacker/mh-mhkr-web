@@ -215,7 +215,7 @@
                 let chart = bb.generate({
                   bindto: `#chart${i}`,
                   title: {
-                    text: `<${userName}> ${yearMonthArr[i]} 점수 분포\n총 ${balances.length}번의 대국`
+                    text: `<${userName}> ${yearMonthArr[i].year}년 ${yearMonthArr[i].month}월 점수 분포\n총 ${balances.length}번의 대국`
                   },
                   data: {
                     xs: {
@@ -238,7 +238,7 @@
                       tick: {
                         fit: true,
                         format: "%d일 %H:%M",
-                        count: balances.length
+                        count: yearMonthArr[i].lastDay
                       }
                     }
                   }
@@ -397,11 +397,14 @@
             console.log(`SAME!`);
             tmpArr.push(curr);
             if (remain === 1) {
-              yearMonthArr.push(
-                `${befDate.getFullYear().toString()}년 ${
-                  befDate.toLocaleDateString().split(". ")[1]
-                }월`
-              );
+              const tmpYear = `${befDate.getFullYear()}`;
+              const tmpMonth = `${befDate.toLocaleDateString().split(". ")[1]}`;
+              const tmpLastDay = new Date(tmpYear, tmpMonth, 0).getDate();
+              yearMonthArr.push({
+                year: tmpYear,
+                month: tmpMonth,
+                lastDay: tmpLastDay
+              });
             }
 
             befDate = currDate;
@@ -415,11 +418,14 @@
           } else {
             console.log(`POOPOOPOODESUWA!`);
             splitedArrs.push(tmpArr);
-            yearMonthArr.push(
-              `${befDate.getFullYear()}년 ${
-                befDate.toLocaleDateString().split(". ")[1]
-              }월`
-            );
+            const tmpYear = `${befDate.getFullYear()}`;
+            const tmpMonth = `${befDate.toLocaleDateString().split(". ")[1]}`;
+            const tmpLastDay = new Date(tmpYear, tmpMonth, 0).getDate();
+            yearMonthArr.push({
+              year: tmpYear,
+              month: tmpMonth,
+              lastDay: tmpLastDay
+            });
             tmpArr = [];
             tmpArr.push(curr);
 
