@@ -19,6 +19,8 @@
     ></script>
     <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <!-- Decimal.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/decimal.js/10.2.0/decimal.js"></script>
     <!-- Naver Billboard Chart library -->
     <!-- Step 1) Load D3.js -->
     <script src="https://d3js.org/d3.v5.min.js"></script>
@@ -37,7 +39,8 @@
     </style>
   </head>
   <body>
-    <h2><span>현재시각: </span><span id="now"></span></h2>
+    <h1 class="title">PZGS 마작 대국기록 차트</h1>
+    <h2 class="subtitle"><span>현재시각: </span><span id="now"></span></h2>
     <hr />
     <div>
       <select name="userName" id="userName">
@@ -45,6 +48,7 @@
       </select>
       <button type="submit" id="submitButton">차트 조회</button>
       <button type="submit" id="scatterButton">분산 차트</button>
+      <button type="submit" id="monthlyAverageButton">월 평균 차트</button>
     </div>
     <div id="charts"></div>
 
@@ -238,7 +242,7 @@
                       tick: {
                         fit: true,
                         format: "%d일 %H:%M",
-                        count: yearMonthArr[i].lastDay,
+                        count: yearMonthArr[i].lastDay
                         // values: getTickValues(yearMonthArr[i].year, yearMonthArr[i].month, yearMonthArr[i].lastDay)
                       }
                     }
@@ -259,7 +263,74 @@
             }
           });
         });
+        //monthly average chart
+        $("#monthlyAverageButton").on("click", function() {
+          const sel = document.getElementById("userName");
+          const userName = sel.options[sel.selectedIndex].value;
 
+          $.ajax({
+            type: "GET",
+            url: "https://api.mh.yohane.dev/records/user?userName=" + userName,
+            success: function(userRecords) {
+              const tmpStr = "";
+              console.log(userRecords.data);
+              userRecords.data.sort((a, b) => {
+                const keyA = new Date(a.date).getTime();
+                const keyB = new Date(b.date).getTime();
+                // Compare the 2 dates
+                if (keyA < keyB) return -1;
+                if (keyA > keyB) return 1;
+                return 0;
+              });
+
+              const { total, balances, dates, balDates } = getDateBalance(
+                userRecords.data,
+                userName
+              );
+              console.log(balDates);
+              const { splitedArrs, yearMonthArr } = splitByMonth(
+                userRecords.data
+              );
+              const monthlyAvgArr = getSplittedMonthlyAverage(
+                splitedArrs,
+                userName
+              );
+
+              console.log(
+                `------------------------------------------------------------`
+              );
+              console.log(yearMonthArrToString(yearMonthArr));
+              console.log(monthlyAvgArr);
+
+              var chart = bb.generate({
+                bindto: `#charts`,
+                data: {
+                  x: "x",
+                  columns: [
+                    ["x"].concat(yearMonthArrToString(yearMonthArr)),
+                    ["월 평균"].concat(monthlyAvgArr)
+                  ],
+                  types: {
+                    "월 평균": "line"
+                  },
+                  colors: {
+                    "월 평균": "skyblue"
+                  }
+                },
+                axis: {
+                  x: {
+                    type: "timeseries",
+                    tick: {
+                      fit: true,
+                      format: "%Y-%m",
+                      count: splitedArrs.length
+                    }
+                  }
+                }
+              });
+            }
+          });
+        });
         // Time Indicating
         $(function() {
           $("#now").text(new Date().toLocaleString());
@@ -446,6 +517,56 @@
           tmp.push(`${year}-${month}-${i}`);
           if (i === length) return tmp;
         }
+      }
+      function getSplittedMonthlyAverage(splitedArrs, userName) {
+        let monthlyAverage = [];
+
+        for (let i = 0; i < splitedArrs.length; i++) {
+          monthlyAverage.push(getMonthlyAverage(splitedArrs[i], userName));
+          // If it is a last one.
+          if (i === splitedArrs.length - 1) {
+            // console.log(
+            //   `monthlyAverage(${splitedArrs.length}) ->`,
+            //   monthlyAverage
+            // );
+            return monthlyAverage;
+          }
+        }
+      }
+      function getMonthlyAverage(monthlyRecordsArr, userName) {
+        const { balances } = getDateBalance(monthlyRecordsArr, userName);
+        let tmpMonthAvg = new Decimal(balances[0]);
+        // console.log(`balances ->`, balances);
+
+        for (let i = 0; i < balances.length; i++) {
+          i++;
+          if (i < balances.length) tmpMonthAvg.plus(balances[i]);
+          // If it is a last one.
+          if (i >= balances.length - 1) {
+            // console.log(`total: `, tmpMonthAvg.div(balances.length).toNumber());
+            return tmpMonthAvg.div(balances.length).toNumber();
+          }
+        }
+      }
+      function yearMonthArrToString(yearMonthArr) {
+        let tmpArr = [];
+        for (let i = 0; i < yearMonthArr.length; i++) {
+          console.log(
+            `yearMonthObjectToDate(yearMonthArr[${i}]) ->`,
+            yearMonthObjectToDate(yearMonthArr[i])
+          );
+          tmpArr.push(yearMonthObjectToDate(yearMonthArr[i]));
+          console.log(`>>>>>>>> ${i+1}/${yearMonthArr.length}, tmpArr ->`, tmpArr);
+          if (i >= yearMonthArr.length - 1) {
+            return tmpArr;
+          }
+        }
+      }
+      function yearMonthObjectToDate(yearMonthObject) {
+        // console.log(`yearMonthObject ->`, yearMonthObject);
+        const year = yearMonthObject.year;
+        const month = yearMonthObject.month;
+        return new Date(year, month, 0);
       }
     </script>
   </body>
