@@ -1,0 +1,22 @@
+select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background: url(http://cdn1.iconfinder.com/data/icons/cc_mono_icon_set/blacks/16x16/br_down.png) no-repeat 95% #eeeeee;
+  /*background: url(https://mh.yohane.dev/images/down-arrow.png) no-repeat 95% 50%;*/
+  width: 150px;
+  padding: 0.8em 0.5em;
+  font-family: inherit;
+  border-radius: 5px;
+}
+
+select::-ms-expand {
+  display: none;
+}
+
+button {
+  width: 70px;
+  padding: 0.8em 0.5em;
+  border-radius: 5px;
+  background-color: #ffffff;
+}
