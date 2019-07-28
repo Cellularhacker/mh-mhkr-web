@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>PZGS 마작 대국기록 - 기록입력</title>
+    <!-- CSS Import -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.4/css/bulma.min.css"
+    />
+    <link rel="stylesheet" href="../css/common.css" />
+    <link rel="stylesheet" href="../css/record-input.css" />
+    <!-- JS Import -->
+    <script
+      defer
+      src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"
+    ></script>
+    <script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+    <!-- Custom JS import -->
+    <script src="../js/common.js"></script>
+    <!-- ===JS Import END=== -->
+  </head>
+  <body>
+    <div>
+      <div id="main-title">
+        <h1 class="title">PZGS 마작 대국기록 차트</h1>
+        <h2 class="subtitle"><span>현재시각: </span><span id="now"></span></h2>
+      </div>
+      <hr />
+      <div id="menu-list">
+        <div class="menu-item">
+          <button type="submit" onclick="location.href='/record-input.html'">
+            기록 입력
+          </button>
+        </div>
+      </div>
+      <hr />
+      <div id="record-input">
+        <div id="formContainer">
+          <label>
+            <select name="game_length">
+              <option value="0">동장</option>
+              <option value="1">반장</option>
+              <option value="2">서장</option>
+              <option value="3">북장(전장)</option>
+            </select>
+          </label>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
