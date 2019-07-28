@@ -3,6 +3,10 @@
   <head>
     <meta charset="UTF-8" lang="ko" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name=" apple-mobile-web-app-title" content="PZGS Mahjong Graph">
     <title>PZGS Mahjong Graph</title>
     <!-- JS Import -->
     <link
@@ -31,26 +35,18 @@
     <!-- Load with base style -->
     <link rel="stylesheet" href="css/billboard.css" />
     <link rel="stylesheet" href="css/index.css" />
+    <link rel="stylesheet" href="css/common.css" />
 
+    <!-- Custom JS import -->
+    <script src="js/common.js"></script>
     <!-- END OF JS Import -->
-    <style>
-      body {
-        padding: 30px 30px 30px 30px;
-      }
-
-      #charts {
-        margin-top: 30px;
-        margin-bottom: 30px;
-      }
-      #formContainer {
-        margin-bottom: 30px;
-      }
-    </style>
   </head>
   <body>
     <div class="has-text-left">
-      <h1 class="title">PZGS 마작 대국기록 차트</h1>
-      <h2 class="subtitle"><span>현재시각: </span><span id="now"></span></h2>
+      <div id="main-title">
+        <h1 class="title">PZGS 마작 대국기록 차트</h1>
+        <h2 class="subtitle"><span>현재시각: </span><span id="now"></span></h2>
+      </div>
       <hr />
       <div id="formContainer">
         <select name="userName" id="userName">
@@ -151,12 +147,6 @@
                         count: INTERVAL_LENGTH
                       }
                     }
-                    // y: {
-                    //   tick: {
-                    //     fit: true,
-                    //     count: INTERVAL_LENGTH
-                    //   }
-                    // }
                   }
                 });
               }
@@ -214,15 +204,6 @@
                   userName
                 );
 
-                // console.log(balDates);
-                // console.log(
-                //   `Generating Follows... #chart${i} / length: ${
-                //     balances.length
-                //   }/${
-                //     dates.length
-                //   }\n\n${balances.toString()}\n${dates.toString()}`
-                // );
-
                 for (let j = 1; j < currMonthArr.length; j++) {
                   $(`#chart${j}`).html("");
                 }
@@ -255,7 +236,6 @@
                         fit: true,
                         format: "%d일 %H:%M",
                         count: yearMonthArr[i].lastDay
-                        // values: getTickValues(yearMonthArr[i].year, yearMonthArr[i].month, yearMonthArr[i].lastDay)
                       }
                     }
                   }
@@ -345,13 +325,6 @@
             }
           });
         });
-        // Time Indicating
-        $(function() {
-          $("#now").text(new Date().toLocaleString());
-          setInterval(function() {
-            $("#now").text(new Date().toLocaleString());
-          }, 1000);
-        });
       });
 
       // Additional Functions
@@ -378,13 +351,9 @@
             balance: balance[0].balance
           });
           balances.push(balance[0].balance);
-          // dates.push(getDate(new Date(e.date).getTime()));
-          // dates.push(e.date);
           dates.push(new Date(e.date));
           balDates.push({
             value: balance[0].balance,
-            // text: getDate(new Date(e.date).getTime())
-            // text: e.date
             text: new Date(e.date)
           });
         });
@@ -420,12 +389,6 @@
           currDate.getSeconds() < 10
             ? "0" + currDate.getSeconds()
             : currDate.getSeconds();
-        // dateStr +=
-        //   currDate.getMilliseconds() < 10
-        //     ? "00" + currDate.getMilliseconds()
-        //     : currDate.getMilliseconds() < 100
-        //     ? "0" + currDate.getMilliseconds()
-        //     : currDate.getMilliseconds();
 
         return dateStr;
       }
@@ -539,10 +502,6 @@
           monthlyAverage.push(getMonthlyAverage(splitedArrs[i], userName));
           // If it is a last one.
           if (i === splitedArrs.length - 1) {
-            // console.log(
-            //   `monthlyAverage(${splitedArrs.length}) ->`,
-            //   monthlyAverage
-            // );
             return monthlyAverage;
           }
         }
@@ -550,14 +509,12 @@
       function getMonthlyAverage(monthlyRecordsArr, userName) {
         const { balances } = getDateBalance(monthlyRecordsArr, userName);
         let tmpMonthAvg = new Decimal(balances[0]);
-        // console.log(`balances ->`, balances);
 
         for (let i = 0; i < balances.length; i++) {
           i++;
           if (i < balances.length) tmpMonthAvg.plus(balances[i]);
           // If it is a last one.
           if (i >= balances.length - 1) {
-            // console.log(`total: `, tmpMonthAvg.div(balances.length).toNumber());
             return tmpMonthAvg.div(balances.length).toFixed(3);
           }
         }
@@ -580,16 +537,14 @@
         }
       }
       function yearMonthObjectToDate(yearMonthObject) {
-        // console.log(`yearMonthObject ->`, yearMonthObject);
         const year = yearMonthObject.year;
         const month = yearMonthObject.month;
         return new Date(year, month, 0);
-        // return `\'${year[2]}${year[3]}\n${month < 10 ? "0" + month : month}`;
       }
     </script>
   </body>
-  <footer class="footer">
-    <div class="content has-text-centered">
+  <footer>
+    <div>
       <p>
         <strong>PZGS Mahjong Graph</strong> by
         <a href="https://github.com/Cellularhacker">Cellularhacker</a>. The
